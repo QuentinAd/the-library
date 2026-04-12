@@ -18,6 +18,9 @@ symlinks:
     to: ~/.claude/commands/
 
 library:
-  skills: []
+  skills:
+    - name: proj
+      description: Project lifecycle manager. Creates projects, manages roadmaps/phases/tasks in 0_planning/, discovers skills, mines patterns, and orchestrates parallel subagent execution.
+      source: ~/dotfiles/agents/skills/proj/SKILL.md
   agents: []
   prompts: []

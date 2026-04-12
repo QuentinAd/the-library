@@ -1,7 +1,7 @@
 ---
 name: library
 description: Private skill distribution system. Use when the user wants to install, use, add, push, remove, sync, list, or search for skills, agents, or prompts from their private library catalog. Triggers on /library commands or mentions of library, skill distribution, or agentic management.
-argument-hint: [command or prompt] [name or details]
+argument-hint: "[command or prompt] [name or details]"
 ---
 
 # The Library
@@ -12,9 +12,9 @@ A meta-skill for private-first distribution of agentics (skills, agents, and pro
 
 > Update these after forking and cloning the library repo.
 
-- **LIBRARY_REPO_URL**: `<your forked repo url>`
-- **LIBRARY_YAML_PATH**: `~/.claude/skills/library/library.yaml`
-- **LIBRARY_SKILL_DIR**: `~/.claude/skills/library/`
+- **LIBRARY_REPO_URL**: `git@github.com:QuentinAd/the-library.git`
+- **LIBRARY_YAML_PATH**: `~/.agents/skills/library/library.yaml`
+- **LIBRARY_SKILL_DIR**: `~/.agents/skills/library/`
 
 ## How It Works
 
@@ -114,18 +114,43 @@ By default, items are installed to the **default** directory from `library.yaml`
 default_dirs:
     skills:
         - default: .claude/skills/
-        - global: ~/.claude/skills/
+        - global: ~/.agents/skills/
     agents:
         - default: .claude/agents/
-        - global: ~/.claude/agents/
+        - global: ~/.agents/agents/
     prompts:
         - default: .claude/commands/
-        - global: ~/.claude/commands/
+        - global: ~/.agents/prompts/
 ```
 
 - If the user says "global" or "globally", use the `global` directory.
 - If the user specifies a custom path, use that path.
 - Otherwise, use the `default` directory.
+
+## Symlinks
+
+The `symlinks` block in `library.yaml` defines directories that should mirror the global install location via symlinks. After every `use` (global install or refresh) and `sync`, apply symlinks for the installed item:
+
+```yaml
+symlinks:
+  - from: ~/.agents/skills/
+    to: ~/.claude/skills/
+```
+
+**Applying symlinks (after global install):**
+- For each entry in `symlinks` where `from` matches the install directory:
+  - Resolve `~` in both paths
+  - Ensure the `to` directory exists: `mkdir -p <to_dir>`
+  - Create a symlink for the item: `ln -sfn <from_dir>/<name> <to_dir>/<name>`
+- This means one install propagates to all configured harnesses automatically.
+
+**On remove (if local copy deleted):**
+- For each matching `symlinks` entry, also remove the symlink:
+  ```bash
+  rm -f <to_dir>/<name>
+  ```
+
+**Symlinks are only applied for global installs**, not default (project-local) installs.
 
 ## Library Repo Sync
 

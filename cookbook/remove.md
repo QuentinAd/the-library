@@ -38,6 +38,10 @@ If the user confirmed local deletion:
   ```bash
   rm -rf <target_directory>/<name>
   ```
+- If deleted from a **global** directory, also remove any symlinks defined in the `symlinks` block:
+  ```bash
+  rm -f <to_dir>/<name>
+  ```
 
 ### 6. Commit and Push
 ```bash

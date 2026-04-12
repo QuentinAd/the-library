@@ -75,6 +75,11 @@ For each installed entry that has a `requires` field:
 - If a dependency is not installed, pull it as well
 - Process dependencies before the items that require them
 
+### 5a. Re-apply Symlinks
+For each refreshed item that was installed in a **global** directory, re-apply symlinks per the `symlinks` block in `library.yaml`:
+- For each matching `symlinks` entry: `ln -sfn <from_dir>/<name> <to_dir>/<name>`
+- Ensures symlinks stay consistent even if they were manually removed.
+
 ### 6. Report Results
 Display a summary table:
 

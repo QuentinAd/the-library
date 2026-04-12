@@ -81,13 +81,22 @@ If the entry has a `requires` field:
   git clone --depth 1 --branch <branch> git@github.com:<org>/<repo>.git "$tmp_dir"
   ```
 
-### 6. Verify Installation
+### 6. Apply Symlinks (global installs only)
+If the install target was a **global** directory, check the `symlinks` block in `library.yaml`:
+- For each entry where `from` matches the global install directory:
+  - Resolve `~` in both `from` and `to` paths
+  - Ensure the `to` directory exists: `mkdir -p <to_dir>`
+  - Create the symlink: `ln -sfn <from_dir>/<name> <to_dir>/<name>`
+- Skip this step for default (project-local) installs.
+
+### 7. Verify Installation
 - Confirm the target directory exists
 - Confirm the main file (SKILL.md, AGENT.md, or prompt file) exists in it
-- Report success with the installed path
+- Report success with the installed path and any symlinks created
 
-### 7. Confirm
+### 8. Confirm
 Tell the user:
 - What was installed and where
+- Any symlinks created (e.g. `~/.claude/skills/<name> → ~/.agents/skills/<name>`)
 - Any dependencies that were also installed
 - If this was a refresh (overwrite), mention that

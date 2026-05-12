@@ -1,12 +1,12 @@
 ---
 name: library
-description: Private skill distribution system. Use when the user wants to install, use, add, push, remove, sync, list, or search for skills, agents, or prompts from their private library catalog. Triggers on /library commands or mentions of library, skill distribution, or agentic management.
+description: Private agentics distribution system. Use when the user wants to install, use, add, push, remove, sync, list, or search for skills, agents, prompts, or plugins from their private library catalog. Triggers on /library commands or mentions of library, skill distribution, or agentic management.
 argument-hint: "[command or prompt] [name or details]"
 ---
 
 # The Library
 
-A meta-skill for private-first distribution of agentics (skills, agents, and prompts) across agents, devices, and teams.
+A meta-skill for private-first distribution of agentics (skills, agents, prompts, and plugins) across agents, devices, and teams.
 
 ## Variables
 
@@ -39,30 +39,39 @@ The Library is a catalog of references to your agentics. The `library.yaml` file
 
 Each command has a detailed step-by-step guide. **Read the relevant cookbook file before executing a command.**
 
-| Command | Cookbook                                 | Use When                                                    |
-| ------- | --------------------------------------- | ----------------------------------------------------------- |
-| install | [cookbook/install.md](cookbook/install.md) | First-time setup on a new device                            |
-| add     | [cookbook/add.md](cookbook/add.md)         | User wants to register a new skill/agent/prompt in catalog  |
-| use     | [cookbook/use.md](cookbook/use.md)         | User wants to pull or refresh a skill from the catalog      |
-| push    | [cookbook/push.md](cookbook/push.md)       | User improved a skill locally and wants to update the source |
-| remove  | [cookbook/remove.md](cookbook/remove.md)   | User wants to remove an entry from the catalog               |
-| list    | [cookbook/list.md](cookbook/list.md)       | User wants to see what's available and what's installed      |
-| sync    | [cookbook/sync.md](cookbook/sync.md)       | User wants to refresh all installed items at once            |
-| search  | [cookbook/search.md](cookbook/search.md)   | User is looking for a skill but doesn't know the exact name |
+| Command           | Cookbook                                          | Use When                                                     |
+| ----------------- | ------------------------------------------------- | ------------------------------------------------------------ |
+| install           | [cookbook/install.md](cookbook/install.md)        | First-time setup on a new device                             |
+| add               | [cookbook/add.md](cookbook/add.md)                | Register a new skill/agent/prompt/plugin in the catalog      |
+| use               | [cookbook/use.md](cookbook/use.md)                | Pull or refresh an item from the catalog                     |
+| use (plugin path) | [cookbook/install-plugin.md](cookbook/install-plugin.md) | Plugin-specific install flow via `claude plugin` CLI    |
+| push              | [cookbook/push.md](cookbook/push.md)              | Push local skill changes back to source (skills/agents/prompts only — plugins update through Claude Code's plugin update) |
+| remove            | [cookbook/remove.md](cookbook/remove.md)          | Remove an entry from the catalog                             |
+| list              | [cookbook/list.md](cookbook/list.md)              | See what's available and what's installed                    |
+| sync              | [cookbook/sync.md](cookbook/sync.md)              | Refresh all installed items at once                          |
+| search            | [cookbook/search.md](cookbook/search.md)          | Find an entry by keyword                                     |
 
 **When a user invokes a `/library` command, read the matching cookbook file first, then execute the steps.**
 
 ## Source Format
 
-The `source` field in `library.yaml` supports these formats (auto-detected):
+The `source` field in `library.yaml` supports these formats (auto-detected from the entry's type):
 
+### Skills, agents, prompts (source points to a single file)
 - `/absolute/path/to/SKILL.md` — local filesystem
 - `https://github.com/org/repo/blob/main/path/to/SKILL.md` — GitHub browser URL
 - `https://raw.githubusercontent.com/org/repo/main/path/to/SKILL.md` — GitHub raw URL
 
-Both GitHub URL formats are supported. Parse org, repo, branch, and file path from the URL structure. For private repos, use SSH or `GITHUB_TOKEN` for auth automatically.
+The source points to a specific file (`SKILL.md`, `AGENT.md`, or prompt file). The install copies the entire parent directory, not just the file.
 
-**Important:** The source points to a specific file (SKILL.md, AGENT.md, or prompt file). We always pull the entire parent directory, not just the file.
+### Plugins (source points to a marketplace directory)
+- `/absolute/path/to/marketplace-dir/` — local filesystem, must contain `.claude-plugin/marketplace.json`
+- `https://github.com/org/repo` — whole repo is the marketplace
+- `https://github.com/org/repo/tree/branch/sub/path` — marketplace at a subpath in the repo
+
+Plugin entries also require a `marketplace_name` field that matches the `name` field inside `marketplace.json`. The install shells out to `claude plugin marketplace add <source>` and `claude plugin install <plugin>@<marketplace_name>`. The library never copies plugin files directly — Claude Code's plugin loader owns the cache.
+
+For private GitHub repos, use SSH or `GITHUB_TOKEN` for auth automatically (this applies to both file-based sources and plugin marketplace sources).
 
 ## Source Parsing Rules
 
@@ -106,9 +115,11 @@ The `requires` field uses typed references to avoid ambiguity:
 
 When resolving dependencies: look up each reference in `library.yaml`, fetch all dependencies first (recursively), then fetch the requested item.
 
+**Plugins do NOT use `requires`.** Plugin-to-plugin dependencies are declared in the plugin's own manifest (`plugin.json`) and resolved by Claude Code's plugin loader.
+
 ## Target Directories
 
-By default, items are installed to the **default** directory from `library.yaml`:
+By default, **skill / agent / prompt** items are installed to the **default** directory from `library.yaml`:
 
 ```yaml
 default_dirs:
@@ -126,6 +137,8 @@ default_dirs:
 - If the user says "global" or "globally", use the `global` directory.
 - If the user specifies a custom path, use that path.
 - Otherwise, use the `default` directory.
+
+**Plugins** bypass this entirely. Claude Code's plugin loader owns the install path (`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`) and the library cookbook never touches it directly. See [cookbook/install-plugin.md](cookbook/install-plugin.md) for the install flow.
 
 ## Symlinks
 

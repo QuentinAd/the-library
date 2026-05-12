@@ -8,6 +8,13 @@ default_dirs:
   prompts:
     - default: .claude/commands/
     - global: ~/.agents/prompts/
+  plugins:
+    # Plugins are managed by Claude Code's own plugin system via the `claude
+    # plugin` CLI. There is no fixed install dir — Claude Code caches each
+    # plugin under ~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/.
+    # Library entries record where the marketplace lives; the install step
+    # shells out to `claude plugin marketplace add` + `claude plugin install`.
+    - claude_managed: true
 
 symlinks:
   - from: ~/.agents/skills/
@@ -18,9 +25,11 @@ symlinks:
     to: ~/.claude/commands/
 
 library:
-  skills:
-    - name: proj
-      description: Project lifecycle manager. Creates projects, manages roadmaps/phases/tasks in 0_planning/, discovers skills, mines patterns, and orchestrates parallel subagent execution.
-      source: ~/dotfiles/agents/skills/proj/SKILL.md
+  skills: []
   agents: []
   prompts: []
+  plugins:
+    - name: proj
+      description: Project lifecycle manager. Native /proj:<name> slash commands. Scaffolds projects from archetypes (minimal, data-pipeline, research-spike, product, custom), manages roadmaps/phases/tasks, runs retros, archives stale planning, and bridges to GitHub Projects.
+      source: ~/dotfiles/agents/plugins-marketplace
+      marketplace_name: dotfiles

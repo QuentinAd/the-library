@@ -1,10 +1,10 @@
-# Use a Skill from the Library
+# Use an Item from the Library
 
 ## Context
-Pull a skill, agent, or prompt from the catalog into the local environment. If already installed locally, overwrite with the latest from the source (refresh).
+Pull a skill, agent, prompt, or plugin from the catalog into the local environment. If already installed locally, overwrite with the latest from the source (refresh).
 
 ## Input
-The user provides a skill name or description.
+The user provides a name or description.
 
 ## Steps
 
@@ -17,10 +17,18 @@ git pull
 
 ### 2. Find the Entry
 - Read `library.yaml`
-- Search across `library.skills`, `library.agents`, and `library.prompts`
+- Search across `library.skills`, `library.agents`, `library.prompts`, and `library.plugins`
 - Match by name (exact) or description (fuzzy/keyword match)
+- Record the **type** (skill / agent / prompt / plugin) — different types take different install paths
 - If multiple matches, show them and ask the user to pick one
 - If no match, tell the user and suggest `/library search`
+
+### 2a. If the entry is a PLUGIN
+Plugins are installed through Claude Code's own plugin system, not by copying files.
+
+**Stop and follow `cookbook/install-plugin.md` from step 3 onward.** That cookbook covers source validation, marketplace registration via `claude plugin marketplace add`, install via `claude plugin install`, and verification.
+
+Steps 3–7 below only apply to skills, agents, and prompts.
 
 ### 3. Resolve Dependencies
 If the entry has a `requires` field:
